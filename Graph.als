@@ -1,28 +1,28 @@
+
 // basic structures and elements 
 sig Vertex {
-	neighbors: set Vertex
+	outgoing: set Vertex
 } {
 	Vertex in DirectedGraph.vertices
-	all v : neighbors | this->v in Edge.relation || v->this in Edge.relation
-	//neighbors are only vertices that have an edge in the graph with the current vertex
+	all v : outgoing | this->v in Edge.relation
+	//s are only vertices that have an edge in the graph with the current vertex
 	//all v: neighbors | v in DirectedGraph.edges.relation.Vertex
 	//all v: neighbors | v == Edge
-//	all v: neighbors | v in Edge.relation.Vertex || v in Vertex.(Edge.relation)
+	//	all v: neighbors | v in Edge.relation.Vertex || v in Vertex.(Edge.relation)
 }
 sig Edge {
 	weight: Int, // can be negative. 
    	v1: one Vertex,
 	v2: one Vertex,
 	relation: v1->v2
-//	relation: Vertex -> Vertex,
+	//	relation: Vertex -> Vertex,
 } {
 	Edge in DirectedGraph.edges
 	//relation.Vertex in Vertex.relation.neighbors
 	//Vertex.relation in relation.Vertex.neighbors
 	one relation
 	relation = v1 -> v2
-	(v1 in v2.neighbors and v2 in v1.neighbors)// iff (v1->v2 in relation)
-
+	v2 in v1.outgoing// iff (v1->v2 in relation)
 }
 
 

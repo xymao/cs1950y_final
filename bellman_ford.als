@@ -9,24 +9,30 @@ sig State {
 	dist: set Vertex -> Cost, //  Int // update 
 	//remainingEdges: set Edge
 	loopCounter: Int,// for 4 Int
-	src: one Vertex
+	src: one Vertex,
+
 } {
 	#dist = #graph.vertices
 	dist.Cost = graph.vertices
+
 }
 
 fact initialState {
 	//remainingEdges = first.graph.edges
 	// all vertex -> to infinity (very large number
-	all d: (Vertex-first.src).(first.dist) | d.isInfinite = True
+	all d: (first.graph.vertices-first.src).(first.dist) | d.isInfinite = 1
 	//all v: first.graph.vertices
 	first.src in first.graph.vertices
-	first.src.(first.dist).isInfinite = False and first.src.(first.dist).value = 0
+	first.src.(first.dist).isInfinite = 0 and first.src.(first.dist).value = 0
 	first.loopCounter = #first.graph.edges
+
 }
 
 fact constrains {
-	all s: State | s.loopCounter > 0 //and s.loopCounter <= #(graph.edges)
+	all s: State | {
+		s.loopCounter > 0 //and s.loopCounter <= #(graph.edges)
+	}
+	all s: State - last | let s' = s.next | one e: Event | e.pre = s and e.post = s'
 }
 
 fact endState {
@@ -44,12 +50,14 @@ sig relaxEdge extends Event { } {
 	post.graph = pre.graph
 	post.loopCounter = minus[pre.loopCounter, 1]
 	// relax one edge at a time
-	all e: pre.graph.edges | {
-		let curcost = plus[e.v1.(pre.dist).value, e.weight] | { //(e.relation.Vertex).(pre.dist).value + e.weight | {
-			(e.v2).(pre.dist).isInfinite = True || (curcost < (e.v2).(pre.dist).value)  => {//Vertex.(e.relation).(pre.dist) or  Vertex.(e.relation).(pre.dist).isInfinite = True => {
-				//Vertex.(e.relation).(post.dist).value = curcost
-				e.v2.(post.dist).value = curcost
-				e.v2.(post.dist).isInfinite = False
+	all e: pre.graph.edges & post.graph.edges | {
+		let curcost = plus[e.v1.(pre.dist).value, e.weight] | {
+ 				e.v2.(post.dist).value = curcost
+				e.v2.(post.dist).isInfinite = 0
+			((e.v2).(pre.dist).isInfinite = 1) => {
+				//post.dist[e.v2].value = curcost
+				//post.dist[e.v2].isInfinite = 0
+				//post.src = e.v2
 			}
 		}
 	}
