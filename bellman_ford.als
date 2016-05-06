@@ -8,7 +8,7 @@ sig State {
 	graph: one DirectedGraph,
 	dist: set Vertex -> Cost, //  Int // update 
 	//remainingEdges: set Edge
-	loopCounter: Int,
+	loopCounter: Int,// for 4 Int
 	src: one Vertex
 } {
 	#dist = #graph.vertices
@@ -18,12 +18,15 @@ sig State {
 fact initialState {
 	//remainingEdges = first.graph.edges
 	// all vertex -> to infinity (very large number
-	all d: Vertex.(first.dist) | d.isInfinite = True
+	all d: (Vertex-first.src).(first.dist) | d.isInfinite = True
 	//all v: first.graph.vertices
 	first.src in first.graph.vertices
 	first.src.(first.dist).isInfinite = False and first.src.(first.dist).value = 0
-	first.loopCounter = #first.graph.vertices
-	
+	first.loopCounter = #first.graph.edges
+}
+
+fact constrains {
+	all s: State | s.loopCounter > 0 //and s.loopCounter <= #(graph.edges)
 }
 
 fact endState {
@@ -39,11 +42,11 @@ abstract sig Event {
 sig relaxEdge extends Event { } {
 	// make sure they are the same graph
 	post.graph = pre.graph
-	post.loopCounter = pre.loopCounter - 1
+	post.loopCounter = minus[pre.loopCounter, 1]
 	// relax one edge at a time
 	all e: pre.graph.edges | {
-		let curcost = (e.v1.(pre.dist).value + e.weight) | { //(e.relation.Vertex).(pre.dist).value + e.weight | {
-			(curcost < (e.v2).(pre.dist).value) || (e.v2).(pre.dist).isInfinite = True => {//Vertex.(e.relation).(pre.dist) or  Vertex.(e.relation).(pre.dist).isInfinite = True => {
+		let curcost = plus[e.v1.(pre.dist).value, e.weight] | { //(e.relation.Vertex).(pre.dist).value + e.weight | {
+			(e.v2).(pre.dist).isInfinite = True || (curcost < (e.v2).(pre.dist).value)  => {//Vertex.(e.relation).(pre.dist) or  Vertex.(e.relation).(pre.dist).isInfinite = True => {
 				//Vertex.(e.relation).(post.dist).value = curcost
 				e.v2.(post.dist).value = curcost
 				e.v2.(post.dist).isInfinite = False
@@ -53,7 +56,7 @@ sig relaxEdge extends Event { } {
 }
 
 
-run {} for 4 but exactly 1 DirectedGraph,  5 Vertex, exactly 4 Edge,  4 relaxEdge
+run {} for 4 but exactly 1 DirectedGraph,  5 Vertex, exactly 4 Edge, 5 Int
 
 
 // Detect negative cycles
