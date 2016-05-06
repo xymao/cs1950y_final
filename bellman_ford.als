@@ -42,9 +42,9 @@ sig relaxEdge extends Event { } {
 	post.loopCounter = pre.loopCounter - 1
 	// relax one edge at a time
 	all e: pre.graph.edges | {
-		let curcost = (e.v1.(pre.dist).value + e.weight) | { //(e.relation.Vertex).(pre.dist).Cost.value + e.weight | {
+		let curcost = (e.v1.(pre.dist).value + e.weight) | { //(e.relation.Vertex).(pre.dist).value + e.weight | {
 			(curcost < (e.v2).(pre.dist).value) || (e.v2).(pre.dist).isInfinite = True => {//Vertex.(e.relation).(pre.dist) or  Vertex.(e.relation).(pre.dist).isInfinite = True => {
-				//Vertex.(e.relation).(post.dist).Cost.value = curcost
+				//Vertex.(e.relation).(post.dist).value = curcost
 				e.v2.(post.dist).value = curcost
 				e.v2.(post.dist).isInfinite = False
 			}
@@ -53,7 +53,7 @@ sig relaxEdge extends Event { } {
 }
 
 
-run {} for 4 but exactly 1 DirectedGraph,  3 Vertex, exactly 2 Edge,  2 relaxEdge
+run {} for 4 but exactly 1 DirectedGraph,  5 Vertex, exactly 4 Edge,  4 relaxEdge
 
 
 // Detect negative cycles
