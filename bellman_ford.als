@@ -7,7 +7,7 @@ open util/boolean
 
 sig State {
 	graph: one DirectedGraph,
-	dist: set Vertex -> Int,
+	dist: set (Vertex one -> one Int),
 	inf: set Vertex -> Int,
 	loopCounter: Int,
 	src: one Vertex,
@@ -26,8 +26,8 @@ fact initialState {
 	all d: (first.graph.vertices-first.src).(first.inf) | d = 1 
 	first.src in first.graph.vertices
 	first.loopCounter = #first.graph.vertices
-	first.src not in first.graph.vertices.outgoing
-	#(first.src.outgoing) = 1
+//	first.src not in first.graph.vertices.outgoing
+//	#(first.src.outgoing) = 1
 }
 
 fact constrains {
@@ -80,7 +80,7 @@ sig relaxEdge extends Event { } {
 }
 
 
-run { } for exactly 4 State, 3 Event, exactly 1 DirectedGraph, exactly 4 Vertex,  exactly 3 Edge, 5 Int
+run { } for exactly 3 State, 2 Event, exactly 1 DirectedGraph, exactly 3 Vertex,  exactly 2 Edge, 5 Int
 
 
 // Detect negative cycles
