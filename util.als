@@ -5,6 +5,7 @@ sig Cost {
 } {
 	//isInfinnite = True
 	isInfinite in {1 + 0}
+
 }
 
 run {}
