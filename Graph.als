@@ -38,8 +38,7 @@ sig DirectedGraph {
 //	all disj v1, v2: vertices | v1 in v2.^(edges.relation) or v2 in v1.^(edges.relation)
 	all n : vertices | vertices in n.*(outgoing+~outgoing)
 
-
 }
 
 
-run {} for exactly 3 Vertex, 3 Edge, 1 DirectedGraph
+run {} for exactly 3 Vertex, exactly 3 Edge, 1 DirectedGraph
