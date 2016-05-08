@@ -7,8 +7,8 @@ open util/boolean
 
 sig State {
 	graph: one DirectedGraph,
-	dist: set Vertex one -> one Int,
-	inf: set Vertex one -> one Int,
+	dist: set Vertex -> Int,
+	inf: set Vertex ->  Int,
 	loopCounter: Int,
 	src: one Vertex,
 
@@ -16,8 +16,8 @@ sig State {
 	remainingEdges: set Edge,
 	//	currentEdge: one Edge
 } {
-	//#dist = #graph.vertices
-	//#inf = #graph.vertices
+	#dist = #graph.vertices
+	#inf = #graph.vertices
 	dist.Int = graph.vertices
 	inf.Int = graph.vertices
 	src in graph.vertices
@@ -36,7 +36,7 @@ fact initialState {
 	all d: (first.graph.vertices).(first.dist) | d = 0
 	all i: (first.graph.vertices-first.src).(first.inf) | i = 1 
 	first.loopCounter = minus[#first.graph.vertices, 1]
-	first.src not in first.graph.vertices.outgoing
+	//first.src not in first.graph.vertices.outgoing
 	//#(first.src.outgoing) = 1
 
 	// modifying 
@@ -75,18 +75,18 @@ sig relaxEdge extends Event { } {
 	#(pre.remainingEdges) > 1 => {
 		currentEdge not in post.remainingEdges
 		post.remainingEdges = pre.remainingEdges - currentEdge
+		post.loopCounter = pre.loopCounter
 	} else {
 		post.loopCounter = minus[pre.loopCounter, 1]
 		post.remainingEdges = pre.graph.edges
-		currentEdge in post.remainingEdges
 	}
 	
-	(currentEdge.v1).(pre.dist) = (currentEdge.v1).(post.dist) 
-	(currentEdge.v1).(pre.inf) = (currentEdge.v1).(post.inf) 
+	//(currentEdge.v1).(pre.dist) = (currentEdge.v1).(post.dist) 
+	//(currentEdge.v1).(pre.inf) = (currentEdge.v1).(post.inf) 
 	// relax edge
-	currentEdge.v1.(pre.inf) = 0 => {
+	currentEdge.v1.(pre.inf) < 1 => {
 		let curcost = plus[currentEdge.v1.(pre.dist), currentEdge.weight] | {
-			(currentEdge.v2).(pre.inf) = 1 => {
+			(currentEdge.v2).(pre.inf) > 0 => {
 				(currentEdge.v2).(post.dist) = curcost
 				(currentEdge.v2).(post.inf) = 0
 				//(post.currentEdge.v1).(post.dist) = (post.currentEdge.v1).(post.dist)
