@@ -73,6 +73,8 @@ sig relaxEdge extends Event { } {
 		post.loopCounter = minus[pre.loopCounter, 1]
 		post.remainingEdges = pre.graph.edges
 		post.currentEdge in post.remainingEdges
+		post.dist = pre.dist 
+		post.inf = pre.inf
 	} else {
 		pre.remainingEdges = post.remainingEdges + pre.currentEdge
 		(pre.currentEdge.v1).(pre.dist) = (pre.currentEdge.v1).(post.dist) 
