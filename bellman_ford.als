@@ -72,13 +72,13 @@ sig relaxEdge extends Event { } {
 	}
 	
 	currentEdge in pre.remainingEdges
-	#(pre.remainingEdges) > 1 => {
+	currentEdge = (pre.remainingEdges)  => {
+		post.loopCounter = minus[pre.loopCounter, 1]
+		post.remainingEdges = pre.graph.edges
+	} else {
 		currentEdge not in post.remainingEdges
 		post.remainingEdges = pre.remainingEdges - currentEdge
 		post.loopCounter = pre.loopCounter
-	} else {
-		post.loopCounter = minus[pre.loopCounter, 1]
-		post.remainingEdges = pre.graph.edges
 	}
 	
 	//(currentEdge.v1).(pre.dist) = (currentEdge.v1).(post.dist) 
@@ -105,19 +105,20 @@ sig relaxEdge extends Event { } {
 		(currentEdge.v2).(pre.dist) = (currentEdge.v2).(post.dist)  
 	}
 }
-run { } for 10 State, 9 Event, exactly 1 DirectedGraph, exactly 3 Vertex, 3 Edge, 5 Int
+run { } for 13 State, 12 Event, exactly 1 DirectedGraph, exactly 4 Vertex, 4 Edge, 6 Int
 
 // if there is no negative cycle, this should hold, even there is positive cycle
-assert correctness {
+assert detectNegCycle {
+	//all s: State | (s.src).(s.dist) = 0 and (s.src).(s.inf) = 0
 	all e: last.graph.edges | 
 		e.v1.(last.inf) = 0 => plus[e.v1.(last.dist), e.weight] >= e.v2.(last.dist)
 }
-check correctness for 10 State, 9 Event, exactly 1 DirectedGraph, exactly 3 Vertex,  3 Edge, 5 Int
-
+check detectNegCycle for exactly 7 State, 6 Event, exactly 1 DirectedGraph, exactly 3 Vertex,  3 Edge, 5 Int
+/*
 assert detectNegCycle {
 	all e: last.graph.edges | 
 		e.v1.(last.inf) = 0 => plus[e.v1.(last.dist), e.weight] < e.v2.(last.dist)
-}
+}*/
 
 
 

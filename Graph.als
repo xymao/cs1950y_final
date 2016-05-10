@@ -34,11 +34,12 @@ sig DirectedGraph {
 		e1.relation != e2.relation //and e1.relation != ~(e2.relation)
 	// no cycle
 	//no iden & edges.relation
+  	//let edges = {a, b: vertices| b in a.outgoing} | all a, b: vertices | a->b not in ^edges
+
 	// all vertices and edges are connected
-//	all disj v1, v2: vertices | v1 in v2.^(edges.relation) or v2 in v1.^(edges.relation)
 	all n : vertices | vertices in n.*(outgoing+~outgoing)
 
 }
 
 
-run {} for exactly 3 Vertex, exactly 3 Edge, 1 DirectedGraph
+run {} for exactly 4 Vertex, exactly 3 Edge, 1 DirectedGraph
