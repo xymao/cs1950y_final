@@ -11,10 +11,8 @@ sig State {
 	inf: set Vertex ->  Int,
 	loopCounter: Int,
 	src: one Vertex,
-
-	// modifying 
 	remainingEdges: set Edge,
-	//	currentEdge: one Edge
+	previous: set Vertex -> Vertex,
 } {
 	#dist = #graph.vertices
 	#inf = #graph.vertices
@@ -24,23 +22,19 @@ sig State {
 	Vertex.inf in {1 + 0}
 	#remainingEdges >= 0
 	#remainingEdges <= #(graph.edges)
-	//all e: graph.edges | e.weight != 0
-  	//let e = {a, b: graph.vertices| b in a.outgoing} | all a, b: graph.vertices | a->b in ^e
-
-	// modifying 
+	all e: graph.edges | e.weight > 0
 	all e: remainingEdges | e in graph.edges
+	all v2: graph.vertices | #(previous.v2) <= 1 //only one pre
 }
 
 fact initialState {
-	first.src.(first.inf) = 0 //and first.src.(first.dist) = 0
+	first.src.(first.inf) = 0
 	all d: (first.graph.vertices).(first.dist) | d = 0
 	all i: (first.graph.vertices-first.src).(first.inf) | i = 1 
 	first.loopCounter = minus[#first.graph.vertices, 1]
-	//first.src not in first.graph.vertices.outgoing
-	//#(first.src.outgoing) = 1
-
-	// modifying 
 	first.remainingEdges = first.graph.edges
+	#first.src.outgoing >0
+	no first.previous 
 }
 
 fact constraint {
@@ -48,12 +42,11 @@ fact constraint {
 		s.loopCounter >= 0 and s.loopCounter < #(s.graph.vertices)
 	}
 	all s: State - last | let s' = s.next | one e: Event | e.pre = s and e.post = s'
-//	all s: State | #(s.graph.vertices-s.src).outgoing = 1
 }
 
 fact endState {
 	last.loopCounter = 0
-	//#last.remainingEdges = #last.graph.edges
+	#last.remainingEdges = #last.graph.edges
 }	
 
 
@@ -70,7 +63,7 @@ sig relaxEdge extends Event { } {
 		v.(post.dist) = v.(pre.dist)
 		v.(post.inf) = v.(pre.inf)
 	}
-	
+		
 	currentEdge in pre.remainingEdges
 	currentEdge = (pre.remainingEdges)  => {
 		post.loopCounter = minus[pre.loopCounter, 1]
@@ -80,48 +73,41 @@ sig relaxEdge extends Event { } {
 		post.remainingEdges = pre.remainingEdges - currentEdge
 		post.loopCounter = pre.loopCounter
 	}
-	
-	//(currentEdge.v1).(pre.dist) = (currentEdge.v1).(post.dist) 
-	//(currentEdge.v1).(pre.inf) = (currentEdge.v1).(post.inf) 
-	// relax edge
+	(post.previous).(currentEdge.v1) = (pre.previous).(currentEdge.v1)	
+
+// relax edge
 	currentEdge.v1.(pre.inf) < 1 => {
 		let curcost = plus[currentEdge.v1.(pre.dist), currentEdge.weight] | {
 			(currentEdge.v2).(pre.inf) > 0 => {
 				(currentEdge.v2).(post.dist) = curcost
 				(currentEdge.v2).(post.inf) = 0
-				//(post.currentEdge.v1).(post.dist) = (post.currentEdge.v1).(post.dist)
+				(post.previous).(currentEdge.v2) = currentEdge.v1
+				currentEdge.v1 -> currentEdge.v2 in post.previous
 			} else {
 				curcost < (currentEdge.v2).(pre.dist) => {
 					(currentEdge.v2).(post.dist) = curcost
 					(currentEdge.v2).(post.inf) = 0
+					(post.previous).(currentEdge.v2) = currentEdge.v1
+					currentEdge.v1 -> currentEdge.v2 in post.previous
 				} else {
 					(currentEdge.v2).(pre.dist) = (currentEdge.v2).(post.dist) 
 					(currentEdge.v2).(pre.inf) = (currentEdge.v2).(post.inf) 
+					post.previous = pre.previous
 				}
 			}	
 		}
 	} else {
 		(currentEdge.v2).(pre.inf) = (currentEdge.v2).(post.inf)
-		(currentEdge.v2).(pre.dist) = (currentEdge.v2).(post.dist)  
+		(currentEdge.v2).(pre.dist) = (currentEdge.v2).(post.dist)
+		post.previous = pre.previous
 	}
 }
-run { } for 13 State, 12 Event, exactly 1 DirectedGraph, exactly 4 Vertex, 4 Edge, 6 Int
+run { } for 10 State, 9 Event, exactly 1 DirectedGraph, exactly 4 Vertex, 3 Edge, 6 Int
 
 // if there is no negative cycle, this should hold, even there is positive cycle
 assert detectNegCycle {
-	//all s: State | (s.src).(s.dist) = 0 and (s.src).(s.inf) = 0
 	all e: last.graph.edges | 
 		e.v1.(last.inf) = 0 => plus[e.v1.(last.dist), e.weight] >= e.v2.(last.dist)
 }
-check detectNegCycle for exactly 7 State, 6 Event, exactly 1 DirectedGraph, exactly 3 Vertex,  3 Edge, 5 Int
-/*
-assert detectNegCycle {
-	all e: last.graph.edges | 
-		e.v1.(last.inf) = 0 => plus[e.v1.(last.dist), e.weight] < e.v2.(last.dist)
-}*/
+check detectNegCycle for exactly 7 State, 6 Event, exactly 1 DirectedGraph, exactly 3 Vertex,  3 Edge, 6 Int
 
-
-
-
-// Detect negative cycles
-// get the path 125% deliverable 
