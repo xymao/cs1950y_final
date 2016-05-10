@@ -46,7 +46,7 @@ fact constraint {
 
 fact endState {
 	last.loopCounter = 0
-	#last.remainingEdges = #last.graph.edges
+	//#last.remainingEdges = #last.graph.edges
 }	
 
 
@@ -63,7 +63,10 @@ sig relaxEdge extends Event { } {
 		v.(post.dist) = v.(pre.dist)
 		v.(post.inf) = v.(pre.inf)
 	}
-		
+	
+	(currentEdge.v1).(pre.dist) = (currentEdge.v1).(post.dist) 
+ 	(currentEdge.v1).(pre.inf) = (currentEdge.v1).(post.inf) 	
+	
 	currentEdge in pre.remainingEdges
 	currentEdge = (pre.remainingEdges)  => {
 		post.loopCounter = minus[pre.loopCounter, 1]

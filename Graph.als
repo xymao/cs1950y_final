@@ -2,7 +2,6 @@
 // basic structures and elements 
 sig Vertex {
 	outgoing: set Vertex,
-//	pre: one Vertex
 } {
 	Vertex in DirectedGraph.vertices
 	all v : outgoing | this->v in Edge.relation
@@ -32,7 +31,7 @@ sig DirectedGraph {
 	all e: edges | e.v1 in vertices and e.v2 in vertices and e.v1 != e.v2
 	// no duplicated edges
 	all disj e1, e2: edges |
-		e1.relation != e2.relation //and e1.relation != ~(e2.relation)
+		e1.relation != e2.relation
 	// no cycle
 	//no iden & ^(edges.relation)
   	//let edges = {a, b: vertices| b in a.outgoing} | all a, b: vertices | a->b not in ^edges
