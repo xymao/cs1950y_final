@@ -8,18 +8,16 @@ open util/boolean
 sig State {
 	graph: one DirectedGraph,
 	dist: set Vertex -> Int,
-	inf: set Vertex ->  Int,
+	inf: set Vertex,
 	loopCounter: Int,
 	src: one Vertex,
 	remainingEdges: set Edge,
 	previous: set Vertex -> Vertex,
 } {
 	#dist = #graph.vertices
-	#inf = #graph.vertices
 	dist.Int = graph.vertices
-	inf.Int = graph.vertices
+	all v: inf | v in graph.vertices
 	src in graph.vertices
-	Vertex.inf in {1 + 0}
 	#remainingEdges >= 0
 	#remainingEdges <= #(graph.edges)
 	all e: graph.edges | e.weight > 0
@@ -28,9 +26,8 @@ sig State {
 }
 
 fact initialState {
-	first.src.(first.inf) = 0
+	first.inf = first.graph.vertices - first.src
 	all d: (first.graph.vertices).(first.dist) | d = 0
-	all i: (first.graph.vertices-first.src).(first.inf) | i = 1 
 	first.loopCounter = minus[#first.graph.vertices, 1]
 	first.remainingEdges = first.graph.edges
 	#first.src.outgoing >0
@@ -61,12 +58,9 @@ sig relaxEdge extends Event { } {
 	post.src = pre.src
 	all v : pre.graph.vertices - currentEdge.v2 | {
 		v.(post.dist) = v.(pre.dist)
-		v.(post.inf) = v.(pre.inf)
+		//(post.inf) = (pre.inf)
 	}
-	
-	(currentEdge.v1).(pre.dist) = (currentEdge.v1).(post.dist) 
- 	(currentEdge.v1).(pre.inf) = (currentEdge.v1).(post.inf) 	
-	
+		
 	currentEdge in pre.remainingEdges
 	currentEdge = (pre.remainingEdges)  => {
 		post.loopCounter = minus[pre.loopCounter, 1]
@@ -79,38 +73,38 @@ sig relaxEdge extends Event { } {
 	(post.previous).(currentEdge.v1) = (pre.previous).(currentEdge.v1)	
 
 // relax edge
-	currentEdge.v1.(pre.inf) < 1 => {
+	currentEdge.v1 not in pre.inf => {
 		let curcost = plus[currentEdge.v1.(pre.dist), currentEdge.weight] | {
-			(currentEdge.v2).(pre.inf) > 0 => {
+			currentEdge.v2 in pre.inf => {
 				(currentEdge.v2).(post.dist) = curcost
-				(currentEdge.v2).(post.inf) = 0
+				post.inf = pre.inf - currentEdge.v2
 				(post.previous).(currentEdge.v2) = currentEdge.v1
 				currentEdge.v1 -> currentEdge.v2 in post.previous
 			} else {
 				curcost < (currentEdge.v2).(pre.dist) => {
 					(currentEdge.v2).(post.dist) = curcost
-					(currentEdge.v2).(post.inf) = 0
+					post.inf = pre.inf - currentEdge.v2
 					(post.previous).(currentEdge.v2) = currentEdge.v1
 					currentEdge.v1 -> currentEdge.v2 in post.previous
 				} else {
 					(currentEdge.v2).(pre.dist) = (currentEdge.v2).(post.dist) 
-					(currentEdge.v2).(pre.inf) = (currentEdge.v2).(post.inf) 
+					pre.inf = post.inf
 					post.previous = pre.previous
 				}
 			}	
 		}
 	} else {
-		(currentEdge.v2).(pre.inf) = (currentEdge.v2).(post.inf)
+		pre.inf = post.inf
 		(currentEdge.v2).(pre.dist) = (currentEdge.v2).(post.dist)
 		post.previous = pre.previous
 	}
 }
-run { } for 10 State, 9 Event, exactly 1 DirectedGraph, exactly 4 Vertex, 3 Edge, 6 Int
+run { } for 7 State, 6 Event, exactly 1 DirectedGraph, exactly 3 Vertex, 3 Edge, 6 Int
 
 // if there is no negative cycle, this should hold, even there is positive cycle
 assert detectNegCycle {
 	all e: last.graph.edges | 
-		e.v1.(last.inf) = 0 => plus[e.v1.(last.dist), e.weight] >= e.v2.(last.dist)
+		e.v1 not in last.inf => plus[e.v1.(last.dist), e.weight] >= e.v2.(last.dist)
 }
-check detectNegCycle for exactly 7 State, 6 Event, exactly 1 DirectedGraph, exactly 3 Vertex,  3 Edge, 6 Int
+check detectNegCycle for exactly 7 State, 6 Event, exactly 1 DirectedGraph, exactly 3 Vertex,  3 Edge, 5 Int
 
